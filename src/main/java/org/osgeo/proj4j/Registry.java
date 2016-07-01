@@ -3,10 +3,12 @@ package org.osgeo.proj4j;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.osgeo.proj4j.datum.Datum;
+import org.osgeo.proj4j.datum.Ellipsoid;
 import org.osgeo.proj4j.proj.*;
 
 /**
- * Records predefined values for various library classes
+ * Supplies predefined values for various library classes
  * such as {@link Ellipsoid}, {@link Datum}, and {@link Projection}. 
  * 
  * @author Martin Davis
@@ -16,12 +18,14 @@ public class Registry {
 
   public Registry() {
     super();
+    initialize();
   }
 
   public final static Datum[] datums = 
   {
     Datum.WGS84,
     Datum.GGRS87,
+    Datum.NAD27,
     Datum.NAD83,
     Datum.POTSDAM,
     Datum.CARTHAGE,
@@ -74,7 +78,7 @@ public class Registry {
     new Ellipsoid("hough", 6378270.0, 0.0, 297.0, "Hough"),
     Ellipsoid.INTERNATIONAL,
     Ellipsoid.INTERNATIONAL_1967,
-    Ellipsoid.KRASOVSKY,
+    Ellipsoid.KRASSOVSKY,
     new Ellipsoid("kaula", 6378163.0, 0.0, 298.24, "Kaula 1961"),
     new Ellipsoid("lerch", 6378139.0, 0.0, 298.257, "Lerch 1979"),
     new Ellipsoid("mprts", 6397300.0, 0.0, 191.0, "Maupertius 1738"),
@@ -107,8 +111,8 @@ public class Registry {
   }
 
   public Projection getProjection( String name ) {
-    if ( projRegistry == null )
-      initialize();
+//    if ( projRegistry == null )
+//      initialize();
     Class cls = (Class)projRegistry.get( name );
     if ( cls != null ) {
       try {
@@ -127,7 +131,10 @@ public class Registry {
     return null;
   }
   
-  private void initialize() {
+  private synchronized void initialize() {
+    // guard against race condition
+    if (projRegistry != null) 
+      return;
     projRegistry = new HashMap();
     register( "aea", AlbersProjection.class, "Albers Equal Area" );
     register( "aeqd", EquidistantAzimuthalProjection.class, "Azimuthal Equidistant" );
@@ -152,7 +159,7 @@ public class Registry {
 //    register( "eck3", Eckert3Projection.class, "Eckert III" );
     register( "eck4", Eckert4Projection.class, "Eckert IV" );
     register( "eck5", Eckert5Projection.class, "Eckert V" );
-//    register( "eck6", Eckert6Projection.class, "Eckert VI" );
+    register( "eck6", Eckert6Projection.class, "Eckert VI" );
     register( "eqc", PlateCarreeProjection.class, "Equidistant Cylindrical (Plate Caree)" );
     register( "eqdc", EquidistantConicProjection.class, "Equidistant Conic" );
     register( "euler", EulerProjection.class, "Euler" );
@@ -172,7 +179,7 @@ public class Registry {
     register( "kav5", KavraiskyVProjection.class, "Kavraisky V" );
 //    register( "kav7", Projection.class, "Kavraisky VII" );
 //    register( "labrd", Projection.class, "Laborde" );
-//    register( "laea", Projection.class, "Lambert Azimuthal Equal Area" );
+    register( "laea", LambertAzimuthalEqualAreaProjection.class, "Lambert Azimuthal Equal Area" );
     register( "lagrng", LagrangeProjection.class, "Lagrange" );
     register( "larr", LarriveeProjection.class, "Larrivee" );
     register( "lask", LaskowskiProjection.class, "Laskowski" );
@@ -184,9 +191,9 @@ public class Registry {
     register( "loxim", LoximuthalProjection.class, "Loximuthal" );
     register( "lsat", LandsatProjection.class, "Space oblique for LANDSAT" );
 //    register( "mbt_s", Projection.class, "McBryde-Thomas Flat-Polar Sine" );
-    register( "mbt_fps", MBTFPSProjection.class, "McBryde-Thomas Flat-Pole Sine (No. 2)" );
-    register( "mbtfpp", MBTFPPProjection.class, "McBride-Thomas Flat-Polar Parabolic" );
-    register( "mbtfpq", MBTFPQProjection.class, "McBryde-Thomas Flat-Polar Quartic" );
+    register( "mbt_fps", McBrydeThomasFlatPolarSine2Projection.class, "McBryde-Thomas Flat-Pole Sine (No. 2)" );
+    register( "mbtfpp", McBrydeThomasFlatPolarParabolicProjection.class, "McBride-Thomas Flat-Polar Parabolic" );
+    register( "mbtfpq", McBrydeThomasFlatPolarQuarticProjection.class, "McBryde-Thomas Flat-Polar Quartic" );
 //    register( "mbtfps", Projection.class, "McBryde-Thomas Flat-Polar Sinusoidal" );
     register( "merc", MercatorProjection.class, "Mercator" );
 //    register( "mil_os", Projection.class, "Miller Oblated Stereographic" );
@@ -222,17 +229,18 @@ public class Registry {
     register( "robin", RobinsonProjection.class, "Robinson" );
     register( "rpoly", RectangularPolyconicProjection.class, "Rectangular Polyconic" );
     register( "sinu", SinusoidalProjection.class, "Sinusoidal (Sanson-Flamsteed)" );
-//    register( "somerc", Projection.class, "Swiss. Obl. Mercator" );
+    register( "somerc", SwissObliqueMercatorProjection.class, "Swiss Oblique Mercator" );
     register( "stere", StereographicAzimuthalProjection.class, "Stereographic" );
-    register( "tcc", TCCProjection.class, "Transverse Central Cylindrical" );
-    register( "tcea", TCEAProjection.class, "Transverse Cylindrical Equal Area" );
+    register( "sterea", ObliqueStereographicAlternativeProjection.class, "Oblique Stereographic Alternative" );
+    register( "tcc", TranverseCentralCylindricalProjection.class, "Transverse Central Cylindrical" );
+    register( "tcea", TransverseCylindricalEqualArea.class, "Transverse Cylindrical Equal Area" );
 //    register( "tissot", TissotProjection.class, "Tissot Conic" );
     register( "tmerc", TransverseMercatorProjection.class, "Transverse Mercator" );
 //    register( "tpeqd", Projection.class, "Two Point Equidistant" );
 //    register( "tpers", Projection.class, "Tilted perspective" );
 //    register( "ups", Projection.class, "Universal Polar Stereographic" );
 //    register( "urm5", Projection.class, "Urmaev V" );
-    register( "urmfps", URMFPSProjection.class, "Urmaev Flat-Polar Sinusoidal" );
+    register( "urmfps", UrmaevFlatPolarSinusoidalProjection.class, "Urmaev Flat-Polar Sinusoidal" );
     register( "utm", TransverseMercatorProjection.class, "Universal Transverse Mercator (UTM)" );
     register( "vandg", VanDerGrintenProjection.class, "van der Grinten (I)" );
 //    register( "vandg2", Projection.class, "van der Grinten II" );

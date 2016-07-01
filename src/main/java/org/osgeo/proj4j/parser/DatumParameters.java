@@ -1,16 +1,16 @@
 package org.osgeo.proj4j.parser;
 
-import org.osgeo.proj4j.CoordinateSystem;
-import org.osgeo.proj4j.Datum;
-import org.osgeo.proj4j.Ellipsoid;
+import org.osgeo.proj4j.CoordinateReferenceSystem;
+import org.osgeo.proj4j.datum.Datum;
+import org.osgeo.proj4j.datum.Ellipsoid;
 
 /**
  * Contains the parsed/computed parameter values 
  * which are used to create 
- * the datum and ellipsoid for a {@link CoordinateSystem}.
+ * the datum and ellipsoid for a {@link CoordinateReferenceSystem}.
  * This class also implements the policies for 
  * which parameters take precedence
- * when multiple inconsisent ones are present.
+ * when multiple inconsistent ones are present.
  * 
  * @author Martin Davis
  *
@@ -26,22 +26,36 @@ public class DatumParameters
   private final static double RV6 = .04243827160493827160; /* 55/1296 */
 
   private Datum datum = null;
-  private double[] datumTransform;
+  private double[] datumTransform = null;
   
   private Ellipsoid ellipsoid;
-  private double a = 0;
-  private double es = 0;
+  private double a = Double.NaN;
+  private double es = Double.NaN;
 
   public DatumParameters() {
     // Default datum is WGS84
-    setDatum(Datum.WGS84);
+//    setDatum(Datum.WGS84);
   }
 
   public Datum getDatum()
   {
     if (datum != null)
       return datum;
-    return new Datum("user", datumTransform, getEllipsoid(), "User-defined");
+    // if no ellipsoid was specified, return WGS84 as the default
+    if (ellipsoid == null && ! isDefinedExplicitly()) {
+      return Datum.WGS84;
+    }
+    // if ellipsoid was WGS84, return that datum
+    if (ellipsoid == Ellipsoid.WGS84)
+      return Datum.WGS84;
+    
+    // otherwise, return a custom datum with the specified ellipsoid
+    return new Datum("User", datumTransform, getEllipsoid(), "User-defined");
+  }
+  
+  private boolean isDefinedExplicitly()
+  {
+    return ! (Double.isNaN(a) || Double.isNaN(es));
   }
   
   public Ellipsoid getEllipsoid()

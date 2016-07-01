@@ -1,3 +1,11 @@
+# Why I forked this ...
+Proj4J does not appear to be in Maven Central. I wanted it to be accessible from Maven without having to go through hoops.
+
+Now it can be using [JitPack](http://jitpack.io)
+
+
+
+
 # Welcome to **_Proj4J_**
 
 **_Proj4J_** is a Java library to transform point coordinates from one geographic coordinate system to another, including datum transformations.

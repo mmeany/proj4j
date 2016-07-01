@@ -1,30 +1,65 @@
 package org.osgeo.proj4j;
 
+import java.text.DecimalFormat;
+
+
 /**
- * Store x, y, and z ordinates as doubles to represent a position in space. Also
- * provides utility methods for comparing the ordinates of two positions and
+ * Stores a the coordinates for a position  
+ * defined relative to some {@link CoordinateReferenceSystem}.
+ * The coordinate is defined via X, Y, and optional Z ordinates. 
+ * Provides utility methods for comparing the ordinates of two positions and
  * for creating positions from Strings/storing positions as strings.
+ * <p>
+ * The primary use of this class is to represent coordinate
+ * values which are to be transformed
+ * by a {@link CoordinateTransform}.
  */
 public class ProjCoordinate 
 {
-	// Stores the X ordinate for this point. Note: This member variable
-	// can be accessed directly. In the future this direct access should
-	// be replaced with getter and setter methods. This will require 
-	// refactoring of the Proj4J code base.
+  public static String DECIMAL_FORMAT_PATTERN = "0.0###############";
+  public static DecimalFormat DECIMAL_FORMAT = new DecimalFormat(DECIMAL_FORMAT_PATTERN);
+
+	/**
+	 * The X ordinate for this point. 
+	 * <p>
+	 * Note: This member variable
+	 * can be accessed directly. In the future this direct access should
+	 * be replaced with getter and setter methods. This will require 
+	 * refactoring of the Proj4J code base.
+	 */
 	public double x;
 	
-	// Stores the Y ordinate for this point. Note: This member variable
-	// can be accessed directly. In the future this direct access should
-	// be replaced with getter and setter methods. This will require 
-	// refactoring of the Proj4J code base.
+	/**
+	 * The Y ordinate for this point. 
+	 * <p>
+	 * Note: This member variable
+	 * can be accessed directly. In the future this direct access should
+	 * be replaced with getter and setter methods. This will require 
+	 * refactoring of the Proj4J code base.
+	 */
 	public double y;
 	
-	// Stores the z ordinate for this point. Note: This member variable
-	// can be accessed directly. In the future this direct access should
-	// be replaced with getter and setter methods. This will require 
-	// refactoring of the Proj4J code base.
+	/**
+	 * The Z ordinate for this point. 
+	 * If this variable has the value <tt>Double.NaN</tt>
+	 * then this coordinate does not have a Z value.
+	 * <p>
+	 * Note: This member variable
+	 * can be accessed directly. In the future this direct access should
+	 * be replaced with getter and setter methods. This will require 
+	 * refactoring of the Proj4J code base.
+	 */
 	public double z;
 	
+	/**
+	 * Creates a ProjCoordinate with default ordinate values.
+	 *
+	 */
+  public ProjCoordinate()
+  {
+    this(0.0, 0.0);
+  }
+
 	/**
 	 * Creates a ProjCoordinate using the provided double parameters.
 	 * The first double parameter is the x ordinate (or easting), 
@@ -32,9 +67,11 @@ public class ProjCoordinate
 	 * and the third double parameter is the z ordinate (elevation or height).
 	 * 
 	 * Valid values should be passed for all three (3) double parameters. If
-	 * you want to create a horizontal only point without a valid Z value, use
+	 * you want to create a horizontal-only point without a valid Z value, use
 	 * the constructor defined in this class that only accepts two (2) double
 	 * parameters.
+	 * 
+	 * @see #ProjCoordinate(double argX, double argY)
 	 */
 	public ProjCoordinate(double argX, double argY, double argZ)
 	{
@@ -58,8 +95,10 @@ public class ProjCoordinate
 	}
 	
 	/** 
-	 * Create a ProjPoint by parsing a String in the same format as returned
+	 * Create a ProjCoordinate by parsing a String in the same format as returned
 	 * by the toString method defined by this class.
+	 * 
+	 * @param argToParse the string to parse
 	 */
 	public ProjCoordinate(String argToParse)
 	{
@@ -117,6 +156,54 @@ public class ProjCoordinate
 		}
 	}
 	
+  /**
+   * Sets the value of this coordinate to 
+   * be equal to the given coordinate's ordinates.
+   * 
+   * @param p the coordinate to copy
+   */
+  public void setValue(ProjCoordinate p)
+  {
+    this.x = p.x;
+    this.y = p.y;
+    this.z = p.z;
+  }
+  
+  /**
+   * Sets the value of this coordinate to 
+   * be equal to the given ordinates.
+   * The Z ordinate is set to <tt>NaN</tt>.
+   * 
+   * @param x the x ordinate
+   * @param y the y ordinate
+   */
+  public void setValue(double x, double y)
+  {
+    this.x = x;
+    this.y = y;
+    this.z = Double.NaN;
+  }
+  
+  /**
+   * Sets the value of this coordinate to 
+   * be equal to the given ordinates.
+   * 
+   * @param x the x ordinate
+   * @param y the y ordinate
+   * @param z the z ordinate
+   */
+  public void setValue(double x, double y, double z)
+  {
+    this.x = x;
+    this.y = y;
+    this.z = z;
+  }
+  
+  public void clearZ()
+  {
+    z = Double.NaN;
+  }
+  
 	/**
 	 * Returns a boolean indicating if the X ordinate value of the 
 	 * ProjCoordinate provided as an ordinate is equal to the X ordinate
@@ -185,9 +272,9 @@ public class ProjCoordinate
 	{
 		// We have to handle Double.NaN values here, because not every
 		// ProjCoordinate will have a valid Z Value.
-		if(this.z == Double.NaN)
+		if(Double.isNaN(z))
 		{
-			if(argToCompare.z == Double.NaN)
+			if(Double.isNaN(argToCompare.z))
 			{
 				// Both the z ordinate values are Double.Nan. Return true.
 				return true;
@@ -204,7 +291,7 @@ public class ProjCoordinate
 		// We have a valid z ordinate value in this ProjCoordinate object.
 		else
 		{
-			if(argToCompare.z == Double.NaN)
+			if(Double.isNaN(argToCompare.z))
 			{
 				// We've got one z ordinate with a valid value and one with
 				// a Double.NaN value. Return false.
@@ -232,27 +319,95 @@ public class ProjCoordinate
 		}
 	}
 	
+  public boolean equals(Object other) {
+    if (!(other instanceof ProjCoordinate)) {
+      return false;
+    }
+    ProjCoordinate p = (ProjCoordinate) other;
+    if (x != p.x) {
+      return false;
+    }
+    if (y != p.y) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Gets a hashcode for this coordinate.
+   * 
+   * @return a hashcode for this coordinate
+   */
+  public int hashCode() {
+    //Algorithm from Effective Java by Joshua Bloch [Jon Aquino]
+    int result = 17;
+    result = 37 * result + hashCode(x);
+    result = 37 * result + hashCode(y);
+    return result;
+  }
+
+  /**
+   * Computes a hash code for a double value, using the algorithm from
+   * Joshua Bloch's book <i>Effective Java"</i>
+   * 
+   * @return a hashcode for the double value
+   */
+  private static int hashCode(double x) {
+    long f = Double.doubleToLongBits(x);
+    return (int)(f^(f>>>32));
+  }
+
 	/**
 	 * Returns a string representing the ProjPoint in the format:
-	 * "ProjCoordinate[X Y Z]"
-	 * 
+	 * <tt>ProjCoordinate[X Y Z]</tt>.
+	 * <p>
 	 * Example: 
-	 * "ProjCoordinate[6241.11 5218.25 12.3]
+	 * <pre>
+	 *    ProjCoordinate[6241.11 5218.25 12.3]
+	 * </pre>
 	 */
 	public String toString()
 	{
 		StringBuilder builder = new StringBuilder();
-		builder.append("ProjCoordinate: ");
+		builder.append("ProjCoordinate[");
 		builder.append(this.x);
 		builder.append(" ");
 		builder.append(this.y);
 		builder.append(" ");
 		builder.append(this.z);
+		builder.append("]");
+		
+		return builder.toString();
+	}
+
+	/**
+	 * Returns a string representing the ProjPoint in the format:
+	 * <tt>[X Y]</tt> 
+	 * or <tt>[X, Y, Z]</tt>.
+	 * Z is not displayed if it is NaN.
+	 * <p>
+	 * Example: 
+	 * <pre>
+	 * 		[6241.11, 5218.25, 12.3]
+	 * </pre>
+	 */
+	public String toShortString()
+	{
+		StringBuilder builder = new StringBuilder();
+		builder.append("[");
+		builder.append(DECIMAL_FORMAT.format(x));
+		builder.append(", ");
+		builder.append(DECIMAL_FORMAT.format(y));
+		if (! Double.isNaN(z)) {
+			builder.append(", ");
+			builder.append(this.z);
+		}
+		builder.append("]");
 		
 		return builder.toString();
 	}
 	
-	public boolean hasValidZValue()
+	public boolean hasValidZOrdinate()
 	{
 		if(Double.isNaN(this.z))
 		{
@@ -270,9 +425,9 @@ public class ProjCoordinate
 	 * values. Values are considered invalid if they are Double.NaN or 
 	 * positive/negative infinity.
 	 */
-	public boolean hasValidXandYValues()
+	public boolean hasValidXandYOrdinates()
 	{
-		if(this.x == Double.NaN)
+		if(Double.isNaN(x))
 		{
 			return false;
 		}
