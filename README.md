@@ -1,10 +1,13 @@
 # Why I forked this ...
 Proj4J does not appear to be in Maven Central. I wanted it to be accessible from Maven without having to go through hoops.
 
-Now it can be using [JitPack](http://jitpack.io)
+Now it can be using [JitPack](http://jitpack.io) and using the following dependency:
 
-
-
+	<dependency>
+		<groupId>com.github.mmeany</groupId>
+		<artifactId>proj4j</artifactId>
+		<version>0.1.0</version>
+	</dependency>
 
 # Welcome to **_Proj4J_**
 
